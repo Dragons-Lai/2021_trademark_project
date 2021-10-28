@@ -9,21 +9,24 @@ from PIL import Image
 
 import shutil
 
+import time
+
 
 torch.manual_seed(4096)
 
 
-directory = '/home/slimon/2021_trademark_project/slimon/model/lab_img_content_text_gray/'
 
 class Model():
     def __init__(self):
+        time_start = time.time() #開始計時
+
         print("--------------------Initialize model----------------")
-        laten_vec_train = pd.read_csv(directory+'latent_vectors.csv', header=None)
+        laten_vec_train = pd.read_csv('/service/trademark/latent_vectors/latent_vectors.csv', header=None)
         self.laten_vec_train = laten_vec_train/np.linalg.norm(laten_vec_train, axis=1, keepdims=True)
-        self.latent_vector_path = pd.read_csv(directory+'latent_vector_path.csv')
+        self.latent_vector_path = pd.read_csv('/home/slimon/2021_trademark_project/slimon/model/retrieve/latent_vector_path.csv')
 
         device = 'cpu'
-        PATH = directory+"resnet152_no_fc.pt"
+        PATH = "/home/slimon/2021_trademark_project/slimon/model/lab_img_content_text_gray/resnet152_no_fc.pt"
         checkpoint = torch.load(PATH, map_location=device)
 
         model_no_fc = models.resnet152(pretrained=True)
@@ -31,6 +34,10 @@ class Model():
         model_no_fc.load_state_dict(checkpoint['model_state_dict'])
         model_no_fc.eval()
         self.model_no_fc = model_no_fc.to(device)
+        
+        time_end = time.time()    #結束計時
+        time_c= time_end - time_start   #執行所花時間
+        print('time cost', time_c, 's')
 
 
 
@@ -71,6 +78,6 @@ class Model():
         for c,p in zip(self.latent_vector_path.caseno[index], self.latent_vector_path.path[index]):
             caseno_list.append(c)
 
-        print(caseno_list[:10])
+        # print(caseno_list[:10])
         return caseno_list
 
